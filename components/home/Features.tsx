@@ -10,7 +10,7 @@ const FeaturesData = [
         id: 1,
         name: 'Chat with PDF',
         description: 'Chat with PDF using our AI!',
-        link: '/dashboard',
+        link: '/chat',
         icon: <FontAwesomeIcon icon={faMicrochip} />, // Correctly pass the icon component
     },
 {

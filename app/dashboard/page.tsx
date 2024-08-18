@@ -1,23 +1,18 @@
-import DashboardClient from './dashboard-client';
-import prisma from '@/utils/prisma';
+import Footer from '@/components/home/Footer';
+import Header from '@/components/home/Header';
+import Hero from '@/components/home/Hero';
+import Features from '@/components/home/Features';
 import { currentUser } from '@clerk/nextjs';
-import type { User } from '@clerk/nextjs/api';
 
-export default async function Page() {
-  const user: User | null = await currentUser();
 
-  const docsList = await prisma.document.findMany({
-    where: {
-      userId: user?.id,
-    },
-    orderBy: {
-      createdAt: 'desc',
-    },
-  });
+export default async function Dashboard() {
 
-  return (
-    <div>
-      <DashboardClient docsList={docsList} />
-    </div>
-  );
+    return (
+        <main className="sm:p-7 sm:pb-0">
+            <Header />
+            <Hero />
+            <Features />
+            <Footer />
+        </main>
+    );
 }
