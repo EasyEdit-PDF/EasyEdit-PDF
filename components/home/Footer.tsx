@@ -5,7 +5,7 @@ import Logo from '../ui/Logo';
 
 const Footer = () => {
     return (
-        <footer className="bg-gray-900 text-white py-8">
+        <footer className="bg-gray-100 text-gray-800 py-8">
             <div className="container mx-auto px-6 flex flex-col items-center md:flex-row md:justify-between">
                 <Logo />
                 <div className="text-center md:text-left mt-4 md:mt-0">
@@ -15,7 +15,7 @@ const Footer = () => {
                             href="https://anshulsoni.in/"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="font-semibold text-gray-400 hover:text-white transition-colors duration-300"
+                            className="font-semibold text-blue-500 hover:text-blue-700 transition-colors duration-300"
                         >
                             Anshul Soni
                         </a>
@@ -24,7 +24,7 @@ const Footer = () => {
                             href="https://www.divjotsingh.com/"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="font-semibold text-gray-400 hover:text-white transition-colors duration-300"
+                            className="font-semibold text-blue-500 hover:text-blue-700 transition-colors duration-300"
                         >
                             Divjot Singh Arora
                         </a>
@@ -34,7 +34,7 @@ const Footer = () => {
                     <Link
                         href="https://twitter.com/anshulsoni2010"
                         aria-label="Twitter"
-                        className="text-gray-400 hover:text-white transition-colors duration-300"
+                        className="text-gray-600 hover:text-blue-500 transition-colors duration-300"
                     >
                         <svg
                             aria-hidden="true"
@@ -47,7 +47,7 @@ const Footer = () => {
                     <Link
                         href="https://github.com/easyedit-pdf/easyedit-pdf/"
                         aria-label="GitHub"
-                        className="text-gray-400 hover:text-white transition-colors duration-300"
+                        className="text-gray-600 hover:text-blue-500 transition-colors duration-300"
                     >
                         <svg
                             aria-hidden="true"

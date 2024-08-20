@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faRocket, faPaperclip, faFilePdf } from '@fortawesome/free-solid-svg-icons'; // Example icons
+import { faRocket, faPaperclip, faLock, faDeleteLeft} from '@fortawesome/free-solid-svg-icons'; // Example icons
 
 const featuresData = [
     {
@@ -21,10 +21,17 @@ const featuresData = [
     },
     {
         id: 3,
-        name: 'PDF Editor',
-        description: 'Edit your PDF documents with precision and ease.',
-        link: '/tools/pdf-editor/',
-        icon: <FontAwesomeIcon icon={faFilePdf} />,
+        name: 'PDF Encryptor',
+        description: 'Encrypt your PDF documents with high level security.',
+        link: '/tools/pdf-encryptor/',
+        icon: <FontAwesomeIcon icon={faLock} />,
+    },
+    {
+        id: 4,
+        name: 'PDF Page Deleter',
+        description: 'Encrypt your PDF documents with high level security.',
+        link: '/tools/pdf-page-deleter/',
+        icon: <FontAwesomeIcon icon={faDeleteLeft} />,
     },
 ];
 
