@@ -1,14 +1,13 @@
-import styles from '@/styles/loading-dots.module.css';
+import styles from '../../styles/loading-dots.module.css';
 
-const LoadingDots = ({
-  color = '#000',
-  style = 'small',
-}: {
-  color: string;
-  style: string;
-}) => {
+interface LoadingDotsProps {
+  color?: string;
+  style?: 'small' | 'large';
+}
+
+const LoadingDots = ({ color = '#000', style = 'small' }: LoadingDotsProps) => {
   return (
-    <span className={style == 'small' ? styles.loading2 : styles.loading}>
+    <span className={style === 'small' ? styles.loading2 : styles.loading}>
       <span style={{ backgroundColor: color }} />
       <span style={{ backgroundColor: color }} />
       <span style={{ backgroundColor: color }} />

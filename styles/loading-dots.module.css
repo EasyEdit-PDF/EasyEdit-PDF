@@ -1,69 +1,49 @@
 .loading {
-  display: inline-flex;
+  display: flex;
+  justify-content: center;
   align-items: center;
-}
-
-.loading .spacer {
-  margin-right: 2px;
 }
 
 .loading span {
-  animation-name: blink;
-  animation-duration: 1.4s;
-  animation-iteration-count: infinite;
-  animation-fill-mode: both;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
   display: inline-block;
-  margin: 0 1px;
+  width: 10px;
+  height: 10px;
+  margin: 0 4px;
+  border-radius: 50%;
+  background-color: currentColor;
+  animation: bounce 1.2s infinite ease-in-out;
 }
 
-.loading span:nth-of-type(2) {
-  animation-delay: 0.2s;
-}
-
-.loading span:nth-of-type(3) {
-  animation-delay: 0.4s;
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
 }
 
 .loading2 {
-  display: inline-flex;
+  display: flex;
+  justify-content: center;
   align-items: center;
 }
 
-.loading2 .spacer {
-  margin-right: 2px;
-}
-
 .loading2 span {
-  animation-name: blink;
-  animation-duration: 1.4s;
-  animation-iteration-count: infinite;
-  animation-fill-mode: both;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
   display: inline-block;
-  margin: 0 1px;
+  width: 6px;
+  height: 6px;
+  margin: 0 2px;
+  border-radius: 50%;
+  background-color: currentColor;
+  animation: bounce2 1.2s infinite ease-in-out;
 }
 
-.loading2 span:nth-of-type(2) {
-  animation-delay: 0.2s;
-}
-
-.loading2 span:nth-of-type(3) {
-  animation-delay: 0.4s;
-}
-
-@keyframes blink {
-  0% {
-    opacity: 0.2;
+@keyframes bounce2 {
+  0%, 100% {
+    transform: translateY(0);
   }
-  20% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0.2;
+  50% {
+    transform: translateY(-6px);
   }
 }

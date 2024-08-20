@@ -1,22 +1,57 @@
+'use client';
+
+import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faRocket } from '@fortawesome/free-solid-svg-icons'; // Example icon
 
 const Hero = () => {
-  return (
-    <div className="container pt-[188px]  pb-[215px] sm:pb-[290px] px-[22px] sm:px-0 mx-auto text-center">
-
-      <h2 className="text-center max-w-[867px] pb-5 sm:pb-7 text-[52px] sm:text-[100px] leading-[39.5px] tracking-[-1.04px] sm:leading-[75px] sm:tracking-[-2.74px] mx-auto ">
-     India's First AI PDF Editor
-      </h2>
-      <p className="text-xl sm:text-2xl pb-10 sm:pb-8 leading-[19px] sm:leading-[34.5px] w-[232px] sm:w-full tracking-[-0.4px] sm:tracking-[-0.6px] text-center mx-auto">
-        Have a conversation with your papers, textbooks, and contracts for free
-      </p>
-      <Link href={'/dashboard'}>
-        <button className="bg_linear rounded-full sm:px-14 px-12 py-[2.5px] sm:py-4 text-white text-center text-xl sm:text-[30px] font-medium leading-[37px] tracking-[-0.3px]">
-          Get Started
-        </button>
-      </Link>
-    </div>
-  );
+    return (
+        <section className="relative bg-gradient-to-r from-blue-200 to-teal-100 overflow-hidden">
+            <div className="container mx-auto px-6 py-16 text-center relative z-10">
+                <motion.h1
+                    className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-6 leading-tight"
+                    initial={{ opacity: 0, y: -50 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, ease: 'easeOut' }}
+                >
+                    Transform Your Documents with <br /> AI-Powered PDF Editing
+                </motion.h1>
+                <motion.p
+                    className="text-lg md:text-2xl text-gray-700 mb-8"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, ease: 'easeOut', delay: 0.2 }}
+                >
+                    Engage with your papers, textbooks, and contracts in a revolutionary way. Experience effortless editing with our cutting-edge technology.
+                </motion.p>
+                <Link href="/dashboard">
+                    <motion.button
+                        className="bg-gradient-to-r from-teal-400 to-blue-500 text-white py-3 px-6 text-lg font-semibold rounded-lg shadow-lg transition-transform transform hover:scale-105"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                    >
+                        Get Started
+                    </motion.button>
+                </Link>
+                <motion.div
+                    className="absolute inset-0 overflow-hidden pointer-events-none"
+                    aria-hidden="true"
+                >
+                    <svg
+                        className="absolute bottom-0 left-0 w-full h-auto text-blue-200"
+                        viewBox="0 0 1280 120"
+                        fill="currentColor"
+                    >
+                        <path
+                            d="M0,48C0,21.6,19.2,0,43.2,0H1232c24,0,43.2,21.6,43.2,48V120H0V48Z"
+                            opacity=".5"
+                        />
+                    </svg>
+                </motion.div>
+            </div>
+        </section>
+    );
 };
 
 export default Hero;
