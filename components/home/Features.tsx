@@ -33,6 +33,20 @@ const featuresData = [
         link: '/tools/pdf-page-deleter/',
         icon: <FontAwesomeIcon icon={faDeleteLeft} />,
     },
+    {
+        id: 5,
+        name: 'PDF Page Extractor',
+        description: 'Encrypt your PDF documents with high level security.',
+        link: '/tools/pdf-page-extractor/',
+        icon: <FontAwesomeIcon icon={faDeleteLeft} />,
+    },
+    {
+        id: 6,
+        name: 'Image To PDF',
+        description: 'Encrypt your PDF documents with high level security.',
+        link: '/tools/image-to-pdf/',
+        icon: <FontAwesomeIcon icon={faDeleteLeft} />,
+    },
 ];
 
 const Features = () => {
