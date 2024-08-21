@@ -2,13 +2,13 @@
 
 import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faRocket, faPaperclip, faLock, faDeleteLeft} from '@fortawesome/free-solid-svg-icons'; // Example icons
+import { faRocket, faPaperclip, faLock, faDeleteLeft, faImage, faFileWord} from '@fortawesome/free-solid-svg-icons'; // Example icons
 
 const featuresData = [
     {
         id: 1,
         name: 'Chat with PDF',
-        description: 'Interact with your PDFs using advanced AI technology.',
+        description: 'Interact with your PDFs using our advanced AI technology.',
         link: '/chat',
         icon: <FontAwesomeIcon icon={faRocket} />,
     },
@@ -29,7 +29,7 @@ const featuresData = [
     {
         id: 4,
         name: 'PDF Page Deleter',
-        description: 'Encrypt your PDF documents with high level security.',
+        description: 'Delete PDF pages without any quality issues',
         link: '/tools/pdf-page-deleter/',
         icon: <FontAwesomeIcon icon={faDeleteLeft} />,
     },
@@ -38,17 +38,16 @@ const featuresData = [
         name: 'PDF Page Extractor',
         description: 'Encrypt your PDF documents with high level security.',
         link: '/tools/pdf-page-extractor/',
-        icon: <FontAwesomeIcon icon={faDeleteLeft} />,
+        icon: <FontAwesomeIcon icon={faFileWord} />,
     },
     {
         id: 6,
         name: 'Image To PDF',
-        description: 'Encrypt your PDF documents with high level security.',
+        description: 'Convert high-quality images into PDF.',
         link: '/tools/image-to-pdf/',
-        icon: <FontAwesomeIcon icon={faDeleteLeft} />,
+        icon: <FontAwesomeIcon icon={faImage} />,
     },
-];
-
+]; 
 const Features = () => {
     return (
         <section className="bg-gray-50 py-16">
