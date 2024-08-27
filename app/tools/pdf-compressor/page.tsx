@@ -1,228 +1,334 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { useDropzone } from 'react-dropzone';
 import { PDFDocument } from 'pdf-lib';
-import { FiUpload, FiDownload, FiEdit2 } from 'react-icons/fi';
+import { Upload, ZapIcon, Download, Loader2, FileIcon, Edit2, CheckCircle, Lock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Progress } from '@/components/ui/progress';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const PDFCompressor = () => {
   const [file, setFile] = useState<File | null>(null);
-  const [compressedFile, setCompressedFile] = useState<Blob | null>(null);
-  const [compressionLevel, setCompressionLevel] = useState<number>(50);
-  const [isCompressing, setIsCompressing] = useState<boolean>(false);
-  const [progress, setProgress] = useState<number>(0);
-  const [fileName, setFileName] = useState<string>('');
-  const [compressedSize, setCompressedSize] = useState<number>(0);
-  const [compressionPercentage, setCompressionPercentage] = useState<number>(0);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [compressedFile, setCompressedFile] = useState<File | null>(null);
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [compressionProgress, setCompressionProgress] = useState(0);
+  const [fileName, setFileName] = useState('');
+  const [isEditingFileName, setIsEditingFileName] = useState(false);
+  const [isEncrypting, setIsEncrypting] = useState(false);
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [encryptedFile, setEncryptedFile] = useState<File | null>(null);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0];
-    if (selectedFile && selectedFile.type === 'application/pdf') {
-      setFile(selectedFile);
-      setFileName(selectedFile.name);
-    } else {
-      alert('Please select a valid PDF file.');
-      setFile(null);
-      setFileName('');
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    if (acceptedFiles[0]) {
+      setFile(acceptedFiles[0]);
+      setFileName(acceptedFiles[0].name.replace('.pdf', '') + '_compressed-easyeditpdf.pdf');
+      setCompressedFile(null);
+      setEncryptedFile(null);
+    }
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: { 'application/pdf': ['.pdf'] },
+    multiple: false,
+  });
+
+  const compressPDF = async () => {
+    if (!file) return;
+    setIsCompressing(true);
+    setCompressionProgress(0);
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdfDoc = await PDFDocument.load(arrayBuffer);
+
+      const compressedPdfDoc = await PDFDocument.create();
+      const pages = await compressedPdfDoc.copyPages(pdfDoc, pdfDoc.getPageIndices());
+      const totalPages = pages.length;
+
+      for (let i = 0; i < totalPages; i++) {
+        compressedPdfDoc.addPage(pages[i]);
+      }
+
+      const pdfBytes = await compressedPdfDoc.save({
+        useObjectStreams: true,
+        addDefaultPage: false,
+      });
+
+      const compressedBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+      setCompressedFile(new File([compressedBlob], fileName, { type: 'application/pdf' }));
+    } catch (error) {
+      console.error('Error compressing PDF:', error);
     }
   };
 
-  const handleCompress = async () => {
-    if (!file) return;
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isCompressing) {
+      const duration = Math.floor(Math.random() * (5000 - 2000 + 1)) + 2000;
+      const interval = duration / 100;
+      let progress = 0;
 
-    setIsCompressing(true);
-    setProgress(0);
+      timer = setInterval(() => {
+        progress += 1;
+        setCompressionProgress(progress);
 
-    const reader = new FileReader();
-    reader.onload = async (e: ProgressEvent<FileReader>) => {
-      try {
-        const pdfDoc = await PDFDocument.load(e.target?.result as ArrayBuffer);
-
-        // Simulate compression process
-        for (let i = 0; i <= 100; i++) {
-          await new Promise(resolve => setTimeout(resolve, 50));
-          setProgress(i);
+        if (progress >= 100) {
+          clearInterval(timer);
+          setIsCompressing(false);
+          setCompressionProgress(100);
         }
+      }, interval);
+    }
+    return () => clearInterval(timer);
+  }, [isCompressing]);
 
-        const pdfBytes = await pdfDoc.save({ 
-          useObjectStreams: false,
-          addDefaultPage: false,
-          objectsPerTick: 50,
-          updateFieldAppearances: false
-        });
-
-        // New compression algorithm
-        const compressImage = (imageBytes: Uint8Array, level: number) => {
-          // Use the new formula: original_size * (100 - compression_level) / 100
-          const compressedSize = Math.floor(imageBytes.length * (100 - level) / 100);
-          return new Uint8Array(compressedSize);
-        };
-
-        const compressPDF = (pdfBytes: Uint8Array, level: number) => {
-          const chunkSize = 1024; // Process in 1KB chunks
-          let compressedBytes = new Uint8Array();
-
-          for (let i = 0; i < pdfBytes.length; i += chunkSize) {
-            const chunk = pdfBytes.slice(i, i + chunkSize);
-            const compressedChunk = compressImage(chunk, level);
-            const newCompressedBytes = new Uint8Array(compressedBytes.length + compressedChunk.length);
-            newCompressedBytes.set(compressedBytes);
-            newCompressedBytes.set(compressedChunk, compressedBytes.length);
-            compressedBytes = newCompressedBytes;
-          }
-
-          return compressedBytes;
-        };
-
-        const compressedPdfBytes = compressPDF(pdfBytes, compressionLevel);
-
-        const blob = new Blob([compressedPdfBytes], { type: 'application/pdf' });
-        setCompressedFile(blob);
-        setCompressedSize(blob.size);
-        const percentage = ((file.size - blob.size) / file.size) * 100;
-        setCompressionPercentage(percentage);
-      } catch (error) {
-        console.error('Error compressing PDF:', error);
-        alert('An error occurred while compressing the PDF. Please try again.');
-      } finally {
-        setIsCompressing(false);
-      }
-    };
-    reader.readAsArrayBuffer(file);
+  const downloadCompressedFile = () => {
+    if (compressedFile) {
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(compressedFile);
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
-  const handleDownload = () => {
-    if (!compressedFile) return;
-    const url = URL.createObjectURL(compressedFile);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const encryptPDF = async () => {
+    if (!compressedFile || password !== confirmPassword) return;
+    setIsEncrypting(true);
+    try {
+      const arrayBuffer = await compressedFile.arrayBuffer();
+      const pdfDoc = await PDFDocument.load(arrayBuffer);
+
+      pdfDoc.encrypt({
+        userPassword: password,
+        ownerPassword: password,
+        permissions: {
+          printing: 'highResolution',
+          modifying: false,
+          copying: false,
+          annotating: false,
+          fillingForms: false,
+          contentAccessibility: true,
+          documentAssembly: false,
+        },
+      });
+
+      const pdfBytes = await pdfDoc.save();
+      const encryptedBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+      setEncryptedFile(new File([encryptedBlob], fileName.replace('.pdf', '_encrypted.pdf'), { type: 'application/pdf' }));
+    } catch (error) {
+      console.error('Error encrypting PDF:', error);
+    } finally {
+      setIsEncrypting(false);
+    }
+  };
+
+  const downloadEncryptedFile = () => {
+    if (encryptedFile) {
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(encryptedFile);
+      link.download = encryptedFile.name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-8 bg-white rounded-2xl shadow-2xl">
-      <h1 className="text-4xl font-bold mb-8 text-center text-gray-800">PDF Compressor</h1>
+    <div className="container mx-auto py-12">
+      <Card className="w-full max-w-4xl mx-auto">
+        <CardHeader>
+          <CardTitle className="text-3xl font-bold text-center">PDF Compressor</CardTitle>
+          <CardDescription className="text-center">Compress your PDF files easily</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div
+            {...getRootProps()}
+            className={`border-2 border-dashed rounded-lg p-10 text-center cursor-pointer transition-all hover:border-primary ${
+              isDragActive ? 'border-primary bg-primary/10' : 'border-muted'
+            }`}
+          >
+            <input {...getInputProps()} />
+            {file ? (
+              <div className="flex flex-col items-center">
+                {compressedFile && compressionProgress === 100 ? (
+                  <CheckCircle className="w-12 h-12 mb-2 text-green-500" />
+                ) : (
+                  <FileIcon className="w-12 h-12 mb-4 text-primary" />
+                )}
+                <p className="text-lg font-medium">{file.name}</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  {(file.size / 1024 / 1024).toFixed(2)} MB
+                </p>
+              </div>
+            ) : (
+              <>
+                <Upload className="w-12 h-12 mx-auto mb-4" />
+                <p className="text-lg font-medium">
+                  {isDragActive ? "Drop the PDF file here ..." : "Drag & drop a PDF file here, or click to select one"}
+                </p>
+              </>
+            )}
+          </div>
 
-      <div className="mb-8">
-        <label htmlFor="file-upload" className="flex items-center justify-center w-full h-40 px-4 transition bg-gray-50 border-2 border-gray-300 border-dashed rounded-2xl appearance-none cursor-pointer hover:border-blue-400 focus:outline-none">
-          {file ? (
-            <div className="text-center">
-              <p className="text-lg font-semibold text-gray-700">Selected file: {file.name}</p>
-              <p className="text-sm text-gray-500">Size: {(file.size / 1024 / 1024).toFixed(2)} MB</p>
-              {compressedFile && (
-                <>
-                  <p className="text-sm text-gray-500">Compressed Size: {(compressedSize / 1024 / 1024).toFixed(2)} MB</p>
-                  <p className="text-sm font-semibold text-green-600">Compression: {compressionPercentage.toFixed(2)}% reduction</p>
-                </>
+          {file && (
+            <div className="space-y-4">
+              {isCompressing ? (
+                <div className="relative pt-1">
+                  <div className="flex mb-2 items-center justify-between">
+                    <div>
+                      <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-primary bg-primary-100">
+                        Compressing
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs font-semibold inline-block text-primary">
+                        {compressionProgress.toFixed(0)}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-primary-200">
+                    <div style={{ width: `${compressionProgress}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-primary">
+                      <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                        <Loader2 className="animate-spin h-5 w-5 text-white" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <Button
+                  onClick={() => {
+                    setIsCompressing(true);
+                    compressPDF();
+                  }}
+                  disabled={isCompressing}
+                  className="w-full"
+                >
+                  <ZapIcon className="mr-2 h-4 w-4" /> Compress PDF
+                </Button>
               )}
             </div>
-          ) : (
-            <span className="flex flex-col items-center space-y-2">
-              <FiUpload className="w-10 h-10 text-gray-400" />
-              <span className="font-medium text-gray-600">Drop PDF file or click to upload</span>
-            </span>
           )}
-          <input
-            id="file-upload"
-            name="file-upload"
-            type="file"
-            accept=".pdf"
-            className="hidden"
-            onChange={handleFileChange}
-            ref={fileInputRef}
-          />
-        </label>
-      </div>
 
-      <div className="mb-8">
-        <label htmlFor="compression-level" className="block text-sm font-medium text-gray-700 mb-2">
-          Compression Level: {compressionLevel}%
-        </label>
-        <input
-          type="range"
-          id="compression-level"
-          min="10"
-          max="100"
-          step="10"
-          value={compressionLevel}
-          onChange={(e) => setCompressionLevel(Number(e.target.value))}
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-        />
-        <div className="flex justify-between text-xs text-gray-600 mt-1">
-          <span>10%</span>
-          <span>100%</span>
-        </div>
-      </div>
-
-      <button
-        onClick={handleCompress}
-        disabled={!file || isCompressing}
-        className={`w-full py-3 px-4 border border-transparent rounded-xl shadow-sm text-base font-medium text-white transition-colors ${
-          !file || isCompressing ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
-        }`}
-      >
-        {isCompressing ? 'Compressing...' : 'Compress PDF'}
-      </button>
-
-      {isCompressing && (
-        <div className="mt-6">
-          <div className="relative pt-1">
-            <div className="flex mb-2 items-center justify-between">
-              <div>
-                <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-blue-600 bg-blue-200">
-                  Progress
-                </span>
+          {compressedFile && !isCompressing && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Compression Results</h3>
+              <Progress value={((1 - compressedFile.size / file!.size) * 100)} className="w-full" />
+              <div className="flex justify-between text-sm">
+                <span>Original: {(file!.size / 1024 / 1024).toFixed(2)} MB</span>
+                <span>Compressed Size: {(compressedFile.size / 1024 / 1024).toFixed(2)} MB</span>
+                <p className="text-green-200 font-semibold">
+                Size Reduction: {((1 - compressedFile.size / file!.size) * 100).toFixed(2)}%
+              </p>
               </div>
-              <div className="text-right">
-                <span className="text-xs font-semibold inline-block text-blue-600">
-                  {progress}%
-                </span>
+
+              <div className="flex items-center space-x-2">
+                {isEditingFileName ? (
+                  <div className="flex-grow flex items-center">
+                    <Input
+                      value={fileName.slice(0, -4)}
+                      onChange={(e) => setFileName(e.target.value + '.pdf')}
+                      onBlur={() => setIsEditingFileName(false)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          setIsEditingFileName(false);
+                        }
+                      }}
+                      className="flex-grow"
+                      autoFocus
+                    />
+                    <span className="ml-1 font-bold">.pdf</span>
+                  </div>
+                ) : (
+                  <p className="flex-grow text-sm font-medium">
+                    {fileName.slice(0, -4)}<span className="font-bold">.pdf</span>
+                  </p>
+                )}
+                <Button
+                  onClick={() => setIsEditingFileName(!isEditingFileName)}
+                  variant="outline"
+                  size="sm"
+                >
+                  <Edit2 className="h-4 w-4" />
+                </Button>
               </div>
+              <Button
+                onClick={downloadCompressedFile}
+                className="w-full"
+                variant="secondary"
+              >
+                <Download className="mr-2 h-4 w-4" /> Download Compressed PDF
+              </Button>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="w-full" variant="outline">
+                    <Lock className="mr-2 h-4 w-4" /> Encrypt PDF
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Encrypt PDF</DialogTitle>
+                    <DialogDescription>
+                      Set a password to encrypt your PDF. Note: Without this password, you won't be able to open the PDF.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 text-grey-200">
+                    <Input
+                      className="text-grey-200"
+                      type="password"
+                      placeholder="Password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <Input
+                      type="password"
+                      className="text-grey-200"
+                      placeholder="Confirm Password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                    <Button
+                      onClick={encryptPDF}
+                      disabled={isEncrypting || password !== confirmPassword}
+                      className="w-full"
+                    >
+                      {isEncrypting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Lock className="mr-2 h-4 w-4" />}
+                      {isEncrypting ? 'Encrypting...' : 'Encrypt and Download'}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              {encryptedFile && (
+                <Button
+                  onClick={downloadEncryptedFile}
+                  className="w-full"
+                  variant="secondary"
+                >
+                  <Download className="mr-2 h-4 w-4" /> Download Encrypted PDF
+                </Button>
+              )}
             </div>
-            <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-blue-200">
-              <div
-                style={{ width: `${progress}%` }}
-                className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500 transition-all duration-300 ease-in-out"
-              ></div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {compressedFile && (
-        <div className="mt-8 p-6 border rounded-xl bg-gray-50">
-          <h2 className="text-2xl font-semibold mb-4 text-gray-800">Compressed PDF</h2>
-          <div className="flex items-center justify-between mb-4">
-            <input
-              type="text"
-              value={fileName}
-              onChange={(e) => setFileName(e.target.value)}
-              className="flex-grow mr-2 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="p-2 text-blue-600 hover:text-blue-800 transition-colors"
-            >
-              <FiEdit2 className="w-5 h-5" />
-            </button>
-          </div>
-          <button
-            onClick={handleDownload}
-            className="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-base font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
-          >
-            <FiDownload className="mr-2 w-5 h-5" />
-            Download Compressed PDF
-          </button>
-        </div>
-      )}
-
-      <div className="mt-8 text-center text-sm text-gray-600">
-        Thank you for using our PDF Compression tool!
-      </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
